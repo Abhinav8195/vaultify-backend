@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     subscription: { 
       type: String, 
         enum: ['Basic', 'Premium'],
-      default: 'basic' 
+      default: 'Basic' 
     },
 }, { minimize: false, timestamps: true });
 

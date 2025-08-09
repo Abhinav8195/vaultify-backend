@@ -14,7 +14,13 @@ export function encrypt(text) {
 }
 
 export function decrypt(encryptedText) {
+  if (!encryptedText || !encryptedText.includes(':')) {
+    throw new Error('Invalid encrypted text format');
+  }
   const [ivHex, encrypted] = encryptedText.split(':');
+  if (ivHex.length !== 32) {
+    throw new Error('Invalid IV length');
+  }
   const iv = Buffer.from(ivHex, 'hex');
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
   let decrypted = decipher.update(encrypted, 'hex', 'utf8');

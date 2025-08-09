@@ -1,15 +1,14 @@
 import PasswordModel from '../models/password.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
 
-// Get all passwords for the logged-in user
+// Get all passwords for user, decrypt passwords before sending
 export const getPasswords = async (req, res) => {
   try {
-    const userId = req.user ? req.user._id : req.query.userId;
-    if (!userId) return res.status(401).json({ message: 'User ID required' });
+    const userId = req.query.userId || req.body.userId;
+    if (!userId) return res.status(400).json({ message: 'User ID required' });
 
     const passwords = await PasswordModel.find({ userId }).sort({ createdAt: -1 });
 
-    // Decrypt passwords before sending
     const decryptedPasswords = passwords.map((p) => ({
       ...p.toObject(),
       password: decrypt(p.password),
@@ -22,34 +21,13 @@ export const getPasswords = async (req, res) => {
   }
 };
 
-
-// Get single password by ID
-export const getPasswordById = async (req, res) => {
-  try {
-    const password = await PasswordModel.findById(req.params.id);
-    if (!password) return res.status(404).json({ message: 'Password not found' });
-    if (password.userId.toString() !== req.user._id.toString())
-      return res.status(403).json({ message: 'Unauthorized' });
-
-    const decryptedPassword = {
-      ...password.toObject(),
-      password: decrypt(password.password),
-    };
-
-    res.json(decryptedPassword);
-  } catch (err) {
-    console.error('Get password by ID error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-
-// Create new password
+// Create a new password, encrypt before saving, decrypt before sending response
 export const createPassword = async (req, res) => {
   try {
-    const userId = req.user ? req.user._id : req.body.userId;
+    const userId = req.body.userId;
+    if (!userId) return res.status(400).json({ message: 'User ID required' });
 
-    const { website, username, password, category, notes, strength } = req.body;
+    const { website, username, password, category, notes, strength, lastUsed } = req.body;
 
     const encryptedPassword = encrypt(password);
 
@@ -60,47 +38,75 @@ export const createPassword = async (req, res) => {
       password: encryptedPassword,
       category,
       notes,
-      strength: strength || 'good',
+      strength,
+      lastUsed,
     });
 
     const savedPassword = await newPassword.save();
-    res.status(201).json(savedPassword);
+
+    res.json({
+      ...savedPassword.toObject(),
+      password: password,  // send decrypted password in response
+    });
   } catch (err) {
     console.error('Create password error:', err);
-    res.status(500).json({ message: 'Server error creating password', error: err.message });
+    res.status(500).json({ message: 'Server error creating password' });
   }
 };
 
-
-// Update existing password
+// Update existing password, encrypt password if updated, decrypt before response
 export const updatePassword = async (req, res) => {
   try {
-    const password = await PasswordModel.findById(req.params.id);
-    if (!password) return res.status(404).json({ message: 'Password not found' });
-    if (password.userId.toString() !== req.user._id.toString()) 
-      return res.status(403).json({ message: 'Unauthorized' });
+    const passwordId = req.params.id;
+    const userId = req.body.userId;
+    if (!userId) return res.status(400).json({ message: 'User ID required' });
 
-    const updates = req.body;
-    Object.assign(password, updates);
+    const { website, username, password, category, notes, strength, lastUsed } = req.body;
 
-    const updatedPassword = await password.save();
-    res.json(updatedPassword);
+    // Encrypt password before update
+    const encryptedPassword = encrypt(password);
+
+    const updatedPassword = await PasswordModel.findOneAndUpdate(
+      { _id: passwordId, userId },
+      {
+        website,
+        username,
+        password: encryptedPassword,
+        category,
+        notes,
+        strength,
+        lastUsed,
+      },
+      { new: true }
+    );
+
+    if (!updatedPassword) return res.status(404).json({ message: 'Password not found' });
+
+    res.json({
+      ...updatedPassword.toObject(),
+      password: password,  // send decrypted password in response
+    });
   } catch (err) {
+    console.error('Update password error:', err);
     res.status(500).json({ message: 'Server error updating password' });
   }
 };
 
-// Delete password by ID
+// Delete password
 export const deletePassword = async (req, res) => {
   try {
-    const password = await PasswordModel.findById(req.params.id);
-    if (!password) return res.status(404).json({ message: 'Password not found' });
-    if (password.userId.toString() !== req.user._id.toString()) 
-      return res.status(403).json({ message: 'Unauthorized' });
+    const passwordId = req.params.id;
+    const userId = req.query.userId || req.body.userId;
 
-    await password.remove();
+    if (!userId) return res.status(400).json({ message: 'User ID required' });
+
+    const deleted = await PasswordModel.findOneAndDelete({ _id: passwordId, userId });
+
+    if (!deleted) return res.status(404).json({ message: 'Password not found' });
+
     res.json({ message: 'Password deleted' });
   } catch (err) {
+    console.error('Delete password error:', err);
     res.status(500).json({ message: 'Server error deleting password' });
   }
 };
