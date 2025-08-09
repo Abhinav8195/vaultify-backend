@@ -5,7 +5,8 @@ import {
   adminLogin,
   forgotPassword,
   verifyOtp,
-  resetPassword
+  resetPassword,
+  updateProfile
 } from '../controllers/userController.js';
 
 const userRouter = express.Router();
@@ -16,5 +17,6 @@ userRouter.post('/admin', adminLogin);
 userRouter.post('/forgot-password', forgotPassword);
 userRouter.post('/verify-otp', verifyOtp);
 userRouter.post('/reset-password', resetPassword);
+userRouter.put('/update-profile', updateProfile);
 
 export default userRouter;

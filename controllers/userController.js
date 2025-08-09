@@ -113,6 +113,28 @@ const loginUser = async (req, res) => {
     }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { userId, fullName } = req.body;
+    if (!userId) return res.status(400).json({ success: false, message: "User ID required" });
+    if (!fullName || fullName.trim().length === 0) {
+      return res.status(400).json({ success: false, message: "Full name is required" });
+    }
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    user.fullName = fullName.trim();
+    await user.save();
+
+    res.json({ success: true, message: "Profile updated", fullName: user.fullName });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 // ADMIN LOGIN
 const adminLogin = async (req, res) => {
     try {
@@ -213,4 +235,4 @@ const resetPassword = async (req, res) => {
     }
 };
 
-export { loginUser, registerUser, adminLogin, forgotPassword, verifyOtp, resetPassword };
+export { loginUser, registerUser, adminLogin, forgotPassword, verifyOtp, resetPassword ,updateProfile};
