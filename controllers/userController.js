@@ -35,14 +35,27 @@ const sendWelcomeEmail = async (email, name) => {
     await transporter.sendMail({
         from: `"Vaultify Team" <${process.env.SMTP_MAIL}>`,
         to: email,
-        subject: "Welcome to Vaultify 🚀",
+        subject: "🚀 Welcome to Vaultify – Your Digital Vault Awaits!",
         html: `
-            <h2>Welcome, ${name}!</h2>
-            <p>Your Vaultify account is ready. Start storing your passwords securely.</p>
-            <a href="${process.env.FRONTEND_URL}" style="background:#4f46e5;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;">Go to Vaultify</a>
+        <div style="font-family: Arial, sans-serif; background-color: #0f172a; padding: 20px; color: #f8fafc;">
+            <div style="max-width: 600px; margin: auto; background: linear-gradient(135deg, #4f46e5, #9333ea); padding: 30px; border-radius: 12px; text-align: center;">
+                <h1 style="color: #fff; font-size: 28px; margin-bottom: 10px;">Welcome to <span style="color: #a78bfa;">Vaultify</span>!</h1>
+                <p style="color: #e0e7ff; font-size: 16px;">Hey <strong>${name}</strong>,</p>
+                <p style="color: #e0e7ff; font-size: 16px; line-height: 1.5;">
+                    Your account is now ready! 🎉 Store your passwords securely, generate strong keys, and keep your digital life safe.
+                </p>
+                <a href="${process.env.FRONTEND_URL}" style="display: inline-block; background: #22d3ee; color: #0f172a; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px;">
+                    🔐 Go to Vaultify
+                </a>
+            </div>
+            <div style="max-width: 600px; margin: auto; padding-top: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+                <p>Made with ❤️ by Vaultify Team © 2025</p>
+            </div>
+        </div>
         `
     });
 };
+
 
 // JWT Token Creator
 const createToken = (id) => {
@@ -81,7 +94,7 @@ const registerUser = async (req, res) => {
         });
 
         const user = await newUser.save();
-        // await sendWelcomeEmail(email, fullName);
+        await sendWelcomeEmail(email, fullName);
 
         const token = createToken(user._id);
         res.json({ success: true, token, userId: user._id,fullName: user.fullName ,email: user.email,subscription: user.subscription });
