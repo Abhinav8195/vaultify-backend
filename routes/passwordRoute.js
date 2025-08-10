@@ -4,6 +4,7 @@ import {
   createPassword,
   updatePassword,
   deletePassword,
+  getAllPasswords
 } from '../controllers/passwordController.js';
 
 
@@ -15,5 +16,6 @@ router.get('/', getPasswords);
 router.post('/', createPassword);       
 router.put('/:id', updatePassword);      
 router.delete('/:id', deletePassword);   
+router.get('/admin/passwords', getAllPasswords);
 
 export default router;

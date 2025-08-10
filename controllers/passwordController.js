@@ -110,3 +110,26 @@ export const deletePassword = async (req, res) => {
     res.status(500).json({ message: 'Server error deleting password' });
   }
 };
+
+export const getAllPasswords = async (req, res) => {
+  try {
+    // Optional: admin auth check
+    const adminKey = req.query.adminKey || req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Fetch all passwords from all users
+    const passwords = await PasswordModel.find().sort({ createdAt: -1 });
+
+    const decryptedPasswords = passwords.map((p) => ({
+      ...p.toObject(),
+      password: decrypt(p.password),
+    }));
+
+    res.json(decryptedPasswords);
+  } catch (err) {
+    console.error('Get ALL passwords (admin) error:', err);
+    res.status(500).json({ message: 'Server error getting passwords' });
+  }
+};
