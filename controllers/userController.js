@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 import otpGenerator from 'otp-generator';
 import nodemailer from 'nodemailer';
 
-const otpStore = {}; // store OTPs in memory
+const otpStore = {}; 
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -20,15 +20,42 @@ const sendOtpEmail = async (email, otp) => {
     await transporter.sendMail({
         from: `"Vaultify Security" <${process.env.SMTP_MAIL}>`,
         to: email,
-        subject: "Vaultify - Reset Your Password",
+        subject: "🔐 Vaultify - Password Reset OTP",
         html: `
-            <h2>Vaultify Password Reset</h2>
-            <p>Your OTP is:</p>
-            <h3 style="letter-spacing:2px">${otp}</h3>
-            <p>This OTP will expire in 5 minutes.</p>
+        <div style="font-family: Arial, sans-serif; background-color: #0f172a; padding: 30px; color: #f8fafc;">
+            <div style="max-width: 600px; margin: auto; background: linear-gradient(135deg, #4f46e5, #9333ea); padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
+                
+                <h1 style="color: #ffffff; text-align: center; font-size: 26px; margin-bottom: 10px;">Vaultify Password Reset</h1>
+                <p style="color: #e0e7ff; text-align: center; font-size: 15px; line-height: 1.5;">
+                    You recently requested to reset your Vaultify password.<br>
+                    Use the OTP below to complete the process:
+                </p>
+
+                <div style="background: #ffffff; color: #111827; font-size: 22px; font-weight: bold; letter-spacing: 4px; text-align: center; padding: 12px 0; margin: 20px auto; border-radius: 8px; width: 180px;">
+                    ${otp}
+                </div>
+
+                <p style="color: #e0e7ff; text-align: center; font-size: 14px;">
+                    ⚠️ This OTP will expire in <b>5 minutes</b>.<br>
+                    If you didn’t request a password reset, please ignore this email.
+                </p>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="${process.env.FRONTEND_URL}/reset-password" 
+                        style="display: inline-block; background: #22d3ee; color: #0f172a; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                        Reset Password
+                    </a>
+                </div>
+            </div>
+
+            <div style="max-width: 600px; margin: auto; padding-top: 15px; text-align: center; font-size: 12px; color: #94a3b8;">
+                <p>Made with ❤️ by Vaultify Team © 2025</p>
+            </div>
+        </div>
         `
     });
 };
+
 
 // Welcome Email
 const sendWelcomeEmail = async (email, name) => {
